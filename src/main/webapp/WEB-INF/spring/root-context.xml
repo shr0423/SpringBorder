@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jee="http://www.springframework.org/schema/jee"
+	xmlns:context="http://www.springframework.org/schema/context"
+	
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/jee https://www.springframework.org/schema/jee/spring-jee.xsd
+	">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<tx:annotation-driven/>
+	
+	<!-- JNDI를 스프링이 처리하게끔 -->
+	<jee:jndi-lookup id="dataSource" jndi-name="jdbc/spring" resource-ref="true"/>
+	
+	
+	<!-- 스프링이 DB관련 기술마다 알아서 적절한 트랜잭션을 작동 
+		MyBatis-DataSourceTransactionManager
+		Hibernate-HibernateTransactionManager
+		JDBC - DataSourceTransactionManager
+		
+	-->
+	<bean id="transactionManager" 
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	<!-- Mybatis SqlSessionFactory는 Mybatis Spring에서는 SqlSessionFactoryBean으로 명칭이 바뀜 -->
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:org/sp/springborder/mybatis/config.xml"/>
+	</bean>
+	
+	
+	<!-- Mybatis의 SqlSession은 Mybatis Spring SqlSesionTemplate으로 명칭이 바뀜 -->
+	<bean id="sqlSessionTemplate" 
+		class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactoryBean"/>
+	</bean>
+	
+	
+	<!-- 파일 업로드 빈 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="2097152"></property>
+	</bean>
+	
+	
+	
+	
+	<!-- repository, service -->
+	<context:component-scan base-package="org.sp.springborder.model"/>
+	<context:component-scan base-package="org.sp.springborder.util"></context:component-scan>
+	
+</beans>

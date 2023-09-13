@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Gallery">
+
+	<!-- 레코드 1건 등록 -->
+
+	<insert id="insert" parameterType="Gallery">
+		insert into gallery(gallery_idx,title,writer,content)
+		values(seq_gallery.nextval,#{title},#{writer},#{content})
+
+		<selectKey keyColumn="gallery_idx" keyProperty="gallery_idx"
+			resultType="int" order="AFTER">
+			select seq_gallery.currval as gallery_idx from
+			dual
+		</selectKey>
+	</insert>
+
+	<!-- 모든 게시물 가져오기 릴레이션 상 자식인 GalleryImg테이블의 레코드도 함께 가져오려면 자동매핑으로는 해결이 안됨 
+		따라서 resultMap이용하여 수동으로 매핑해보자 -->
+	<resultMap type="Gallery" id="galleryMap">
+		<id column="gallery_idx" property="gallery_idx"/>
+		<result column="title" property="title"/>
+		<result column="writer" property="writer"/>
+		<result column="regdate" property="regdate"/>
+		<result column="hit" property="hit"/>
+		<result column="content" property="content"/>
+		
+		<collection column="gallery_idx" property="galleryImgList" javaType="java.util.List"
+		ofType="GalleryImg" select="GalleryImg.selectByGalleryIdx"/>
+		
+	</resultMap>
+	
+	<!-- 게시물 목록 가져오기 -->
+	<sql id="selectSql">
+		select gallery_idx, title, writer,regdate,hit,content from gallery
+	</sql>
+	
+	<select id="selectAll" resultMap="galleryMap">
+		<include refid="selectSql"/>
+		order by gallery_idx desc
+	</select>
+	
+	
+
+	<!-- 게시물 한건 가져오기 -->
+	
+	<select id="select" resultMap="galleryMap" parameterType="int">
+		<include refid="selectSql"/>
+		where gallery_idx=#{gallery_idx}
+		
+	</select>
+	
+	<!-- 수정하기 -->
+	<update id="update" parameterType="gallery">
+		update gallery set title=#{title}, writer=#{writer},content=#{content}
+		where gallery_idx=#{gallery_idx}
+	</update>
+	
+	
+	<!-- 게시물 1건 삭제 -->
+	<delete id="delete" parameterType="int">
+		delete gallery where gallery_idx=#{gallery_idx}
+	</delete>
+	
+	
+</mapper>
